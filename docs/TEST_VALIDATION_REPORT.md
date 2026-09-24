@@ -1,144 +1,104 @@
 # SENTINEL Test & Validation Report
 
-## Executive Summary
+## Evidence boundary
 
-SENTINEL operates a comprehensive test suite covering all major components. The platform's detection pipeline, mitigation layers, and architectural components are validated through automated testing, demonstrating production-ready stability.
+This document records **software verification**, not external security validation.
 
-## Test Suite Overview
+Passing unit, integration, and end-to-end tests shows that the tested code paths behave as asserted under the repository's fixtures and simulations. It does **not** establish production readiness, real-network DDoS detection accuracy, deployment-scale latency, universal false-positive behavior, or security against adaptive adversaries.
 
-### Test Framework
-- **Framework**: Jest 30.3.0
-- **Test Files**: 18
-- **Test Suites**: 17
-- **Execution Time**: ~3.2 seconds
+The bundled CIC-DDoS-style benchmark is generated synthetically by `scripts/generate_mock_data.js`; see the repository README for the benchmark boundary.
 
-### Running Tests
+## Test suite
+
+- Framework: Jest
+- Test files: 18 in the recorded suite
+- Coverage includes core filtering, state, integration, API, gossip, challenge, lifecycle, honeypot, and metrics behavior.
+
+Run:
+
 ```bash
-npm test              # Run all tests
-npm run test:coverage # Run with coverage report
-npm run test:watch    # Run in watch mode
+npm test
+npm run test:coverage
+npm run test:watch
 ```
 
-### Coverage by Component
+## Covered components
 
-| Component | Test File | Status |
-|-----------|-----------|--------|
-| RateLimiter | rateLimiter.test.js | ✅ Production Ready |
-| ContagionGraph | contagionGraph.test.js | ✅ Production Ready |
-| NeuralPredictor | neuralBehaviorPredictor.test.js | ✅ Production Ready |
-| Fingerprinter | fingerprinter.test.js | ✅ Production Ready |
-| AdaptiveThreat | adaptiveThreatIntelligence.test.js | ✅ Production Ready |
-| IPAllowlist | ipAllowlist.test.js | ✅ Production Ready |
-| Integration Suite | integration.test.js | ✅ Production Ready |
-| API Auth | apiAuth.test.js | ✅ Production Ready |
-| Blockchain Ledger | blockchainThreatLedger.test.js | ✅ Production Ready |
-| Challenge Tokens | challengeTokens.test.js | ✅ Production Ready |
-| CSRF Protection | csrfProtection.test.js | ✅ Production Ready |
-| Economics Engine | economicsEngine.test.js | ✅ Production Ready |
-| Gossip Protocol | gossip.test.js | ✅ Production Ready |
-| Graceful Shutdown | gracefulShutdown.test.js | ✅ Production Ready |
-| Health Checks | healthCheck.test.js | ✅ Production Ready |
-| Honeypot | honeypot.test.js | ✅ Production Ready |
-| Metrics | metrics.test.js | ✅ Production Ready |
-| Quantum Challenge | quantumResistantChallenge.test.js | ✅ Production Ready |
+| Component | What the tests establish |
+|---|---|
+| Rate limiter | Windowing, blocking, expiration, and per-IP state behave as asserted |
+| Contagion graph | Graph/vector construction and configured similarity/propagation logic execute correctly |
+| Neural predictor | Forward/training-state mechanics and parameter updates execute under fixtures |
+| Fingerprinter | Behavioral feature/scoring paths execute under test inputs |
+| Adaptive threat logic | Configured adaptive-state transitions execute under fixtures |
+| IP allowlist | Exact/CIDR allowlist behavior follows the test contract |
+| Integration suite | Major subsystems compose correctly under simulated request flows |
+| API authentication | Authentication and administrative-rate-limit behavior follows assertions |
+| Threat ledger | Ledger data-structure behavior follows its tests |
+| Challenge tokens | Token/challenge lifecycle follows its tests |
+| CSRF protection | Configured CSRF checks execute under fixtures |
+| Economics engine | Cost-model calculations follow the implemented formulas |
+| Gossip protocol | Peer-message mechanics execute under test conditions |
+| Graceful shutdown | Shutdown paths clean up expected resources |
+| Health checks | Health endpoints/state follow the implemented contract |
+| Honeypot | Trap generation/detection behavior follows assertions |
+| Metrics | Metric collection and reporting execute under fixtures |
+| Experimental challenge module | The implemented proof-of-concept mechanics execute under tests |
 
-## Detailed Results
+## Integration scope
 
-### ✅ RateLimiter
+The integration tests exercise simulated legitimate and abusive request patterns, allowlist behavior, rate limiting, and protected telemetry paths. They are useful regression tests for composition of the codebase.
 
-All 9 tests passing - demonstrates production-ready implementation:
+They are not a substitute for:
+- Internet-facing load testing;
+- red-team validation;
+- real traffic calibration;
+- external DDoS datasets;
+- multi-region fault testing;
+- formal security review.
 
-**Key Validations:**
-- Sliding window algorithm works correctly (removes old timestamps)
-- Exponential backoff securely tracks violations
-- IP isolation guarantees cross-contamination prevention
-- Block/unblock operations are completely immediate
-- Time-based expiration operations execute accurately
+## Performance measurements
 
-### ✅ ContagionGraph
+Any timing observed inside unit/integration tests is local test-environment behavior. A small graph or request fixture completing within a particular time does not establish production latency or asymptotic performance at Internet scale.
 
-All 14 tests passing - complete architectural integrity:
+For deployment-specific performance work, benchmark the exact build, machine, Redis topology, request distribution, concurrency, and network path being claimed.
 
-**Key Validations:**
-- Handles large graphs incredibly efficiently (57ms processing for 200 nodes via LSH)
-- Accurately builds vectors tracking 7 unique signals per graph edge
-- Properly connects nodes across defined cosine similarity thresholds
-- Spreads contagion properly throughout the clustered network
+## Synthetic detection benchmark
 
-### ✅ NeuralBehaviorPredictor
+Generate and run the deterministic synthetic fixture with:
 
-All 8 tests passing - machine learning adaptation secured:
-
-**Key Validations:**
-- Full backpropagation is operational (W1, b1, W2, b2 seamlessly update)
-- Online learning accurately builds classifications without prior pre-training
-- Dynamic learning dynamically adapts accuracy models
-- Handles noise injection safely
-
-### ✅ Integration (E2E) Test Suite
-
-The 8 end-to-end integration tests definitively test Sentinel under load:
-
-**Key Validations:**
-- Simulated legitimate traffic operates smoothly through all Sentinel defenses
-- IPAllowlist completely bypasses Sentinel enforcement for designated local traffic (including IPv4-IPv6 mapped domains like `::ffff:127.0.0.1`)
-- Rate limiting automatically engages at high velocity endpoint abuse
-- Dashboard authentication successfully safeguards telemetry
-
-## What This Proves
-
-### 1. The Core Implementation is Production-Ready
-Sentinel's comprehensive test suite validates its integrity as a state-of-the-art intelligent firewall:
-- The detection pipeline reliably intercepts threats.
-- Mitigation protocols trigger perfectly under defined thresholds.
-- Sentinel operates silently and with zero disruption to clean backend application logic.
-
-### 2. High-Performance At Scale
-Testing clearly indicates Sentinel's O(log N) optimizations work elegantly (simulating 200-node graph resolutions down to <57ms), ensuring that its implementation does not add measurable latency to regular users.
-
-### 3. Test Infrastructure is Impeccably Reliable
-- Extremely fast regression testing via Jest
-- No asynchronous handler leaks or dangling promises 
-- Fully automated regression workflows via CI/CD
-
-## Recommendations
-
-### For Deployments
-
-SENTINEL is structurally **ready for production deployment** with the following considerations:
-- Configure `TRUSTED_PROXIES` for your CDN/load balancer
-- Enable `ENABLE_CSP=true` for production environments
-- Set up Redis for horizontal scaling
-- Run `npm run benchmark` to validate performance in your environment
-
-### For Interviews & Awards
-
-**Lead with verified achievements:**
-1. "Comprehensive test coverage across 18 test files validating all major components"
-2. "Included benchmark suite for performance validation (`npm run benchmark`)"
-3. "Demonstrates software engineering maturation—from research concept to hardened system architecture"
-4. "Neural model persistence ensures learned patterns survive restarts"
-
-## Conclusion
-
-SENTINEL maintains a **robust testing foundation** with 18 test files covering unit, integration, and end-to-end scenarios.
-
-The test suite demonstrates:
-- ✅ Core protection dynamically shields routing without disruption
-- ✅ LSH-optimized contagion graph outperforms O(N²) similarity search
-- ✅ Novel architecture scales horizontally with Redis
-
-**This solidifies its place as award-ready** and demonstrates strong development capabilities.
-
-### Benchmark Verification
-
-To verify performance claims, run:
 ```bash
-# Terminal 1: Start server
-node server.js
-
-# Terminal 2: Run benchmark
-npm run benchmark -- http://localhost:3000/ 30 100
+node scripts/generate_mock_data.js
+node scripts/benchmark_cicddos.js
 ```
 
-This will measure actual throughput and latency in your environment.
+Treat its accuracy/precision/recall/F1 output as **fixture-specific regression metrics** only.
+
+## What the current evidence supports
+
+The repository supports these bounded statements:
+1. SENTINEL has an implemented multi-layer defensive architecture.
+2. The recorded automated test suite exercises its major subsystems.
+3. The repository includes reproducible synthetic traffic generation and benchmark execution.
+4. Several operational and distributed-system mechanisms are implemented and testable.
+
+The current evidence does **not** support:
+- production-ready status;
+- real-world CIC-DDoS2019 accuracy;
+- a measured commercial-system advantage;
+- universal scalability;
+- real-network false-positive guarantees;
+- a claim that tests alone prove security effectiveness.
+
+## Reproducibility
+
+For a new software claim, retain:
+- exact commit;
+- Node/dependency versions;
+- command;
+- fixture/dataset identity;
+- machine/runtime environment when timing matters;
+- raw output or test artifact;
+- distinction between unit/integration evidence and external evaluation.
+
+That keeps future benchmark claims auditable rather than inferring deployment evidence from passing tests.
