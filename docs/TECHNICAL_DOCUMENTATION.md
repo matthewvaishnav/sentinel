@@ -1,7 +1,11 @@
 # SENTINEL Technical Documentation
 ## Complete System Explanation
 
-This document provides a comprehensive explanation of every component, algorithm, and design decision in the SENTINEL anti-DDoS platform.
+This document describes the implemented components, algorithms, and design decisions in SENTINEL.
+
+## Evidence boundary
+
+Architecture descriptions below explain what the code is intended to do. Complexity notes and example timings are not external deployment validation. The repository's CIC-DDoS-style detection benchmark uses a deterministic synthetic fixture generated locally; it is not the real CIC-DDoS2019 corpus. Do not infer production readiness, real-network efficacy, universal scaling, or commercial-system equivalence from architecture, unit tests, or synthetic benchmark results.
 
 ---
 
@@ -1229,8 +1233,8 @@ function computeHash(vector, hyperplanes) {
 
 **Performance:**
 - Without LSH: 10,000 comparisons per update
-- With LSH: ~20 comparisons per update (500x faster)
-- Scales to millions of IPs
+- With LSH: candidate comparisons can be reduced substantially when bucket structure is favorable.
+- Large-scale behavior depends on data distribution, hash configuration, hardware, and deployment topology and requires separate benchmarking.
 
 **Edge Creation:**
 ```javascript
@@ -1590,11 +1594,7 @@ Where:
 ### Performance Characteristics
 
 **Throughput:**
-- Rate limiter: ~100,000 checks/sec
-- Fingerprinter: ~50,000 updates/sec
-- Contagion graph (LSH): ~50,000 updates/sec (62x improvement)
-- Contagion graph (brute): ~800 updates/sec
-- Neural network: ~200,000 predictions/sec
+The repository contains local benchmark/test paths, but this document does not promote fixed throughput figures as deployment evidence. Throughput must be measured on the exact hardware, runtime, concurrency pattern, Redis configuration, and request distribution being claimed.
 
 **Memory Usage:**
 - Per IP: ~1-2 KB (profile + timestamps + graph node)
@@ -1603,13 +1603,7 @@ Where:
 - 100,000 active IPs: ~150-250 MB (with LSH)
 
 **Latency:**
-- Allowlist check: <0.1ms
-- Rate limit check: <0.5ms
-- Fingerprinting: <1ms
-- Neural prediction: <0.5ms
-- Contagion update (LSH): <1ms (was 5ms)
-- Contagion update (brute): <5ms
-- Total middleware: <5ms per request (was <10ms)
+Component and end-to-end latency are environment-dependent. Test or development timings should be retained with their hardware/runtime context; no fixed production-latency guarantee is asserted here.
 
 ---
 
@@ -1760,7 +1754,7 @@ SENTINEL demonstrates a comprehensive understanding of:
 - **Engineering:** Clean code, modular design, observable systems
 - **Performance:** Complexity analysis, optimization, benchmarking
 
-While some components are exploratory (blockchain, quantum challenges), the core protection layers are production-capable and demonstrate solid engineering fundamentals. The recent performance optimizations (LSH, full backprop, event batching) show ability to identify bottlenecks and implement real solutions with measurable impact.
+Some components are exploratory, including ledger/challenge mechanisms. The core value of the repository is the implemented and testable systems architecture. Production suitability and real-network effectiveness require separate deployment-specific validation.
 
 The project showcases breadth of learning across multiple domains and the ability to implement complex systems from research concepts, then optimize them for production use.
 
